@@ -1,9 +1,8 @@
 <?php
-
-// Détermination du client actif via un cookie, par défaut clienta
+// Détermination du client actif via cookie (par défaut : clienta)
 $clientId = $_COOKIE['client_id'] ?? 'clienta';
 
-// Permet de changer de client via les liens de navigation
+// Permet de changer de client via les liens
 if (isset($_GET['setClient'])) {
     $newClient = $_GET['setClient'];
     if (in_array($newClient, ['clienta','clientb','clientc'])) {
@@ -17,79 +16,83 @@ if (isset($_GET['setClient'])) {
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <style>
-        /* Styles pour la liste des voitures (Etape 5) */
-        .dynamic-div .cars-list { list-style: none; padding: 0; margin: 0; }
-        .dynamic-div .cars-list li { padding: .5rem .75rem; border-bottom: 1px solid #eee; }
-        .dynamic-div .car-old { background-color: #ffe6e6; }  /* > 10 ans */
-        .dynamic-div .car-new { background-color: #e6ffea; }  /* < 2 ans */
-    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tool4cars</title>
+    <title>Auto e-auto</title>
+
+    <!-- Bootstrap CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        /* Personnalisation Client A (vieilles / nouvelles voitures) */
+        .car-old { background-color: #f8d7da !important; } /* rouge clair */
+        .car-new { background-color: #d4edda !important; } /* vert clair */
+    </style>
+
     <script>
         $(function () {
             const client = <?= json_encode($clientId) ?>;
             let currentModule = "cars";
 
-            // Charge dynamiquement un module (cars ou garages) via Ajax
+            // Fonction générique pour charger un module (cars ou garages)
             function loadModule(module = "cars") {
                 currentModule = module;
 
-                // Limite l'accès au module garages (réservé au client B)
+                // Module garages réservé à Client B
                 if (module === "garages" && client !== "clientb") {
-                    $(".dynamic-div").html('<p>Le module "Garages" est disponible uniquement pour le Client B.</p>');
+                    $(".dynamic-div").html('<div class="alert alert-warning">Le module "Garages" est disponible uniquement pour le Client B.</div>');
                     return;
                 }
 
                 $.get(`customs/${client}/modules/${module}/ajax.php`, function (html) {
                     $(".dynamic-div").html(html);
                 }).fail(function () {
-                    $(".dynamic-div").html("<p>Erreur lors du chargement du module.</p>");
+                    $(".dynamic-div").html('<div class="alert alert-danger">Erreur lors du chargement du module.</div>');
                 });
             }
 
-            // Chargement initial du module voitures
+            // Chargement initial
             loadModule("cars");
 
-            // Gestion navigation modules
+            // Navigation modules
             $(document).on("click", ".switch-module", function (e) {
                 e.preventDefault();
                 loadModule($(this).data("module"));
             });
 
-            // Gestion des voitures 
-            // Ouverture de la fiche détail au clic sur une voiture
+            // Vue détail voiture
             $(document).on("click", ".car-link", function (e) {
                 e.preventDefault();
                 const carId = $(this).data("id");
                 $.get(`customs/${client}/modules/cars/edit.php`, { id: carId }, function (html) {
                     $(".dynamic-div").html(html);
-                }).fail(()=> $(".dynamic-div").html("<p>Voiture introuvable.</p>"));
+                }).fail(()=> $(".dynamic-div").html('<div class="alert alert-danger">Voiture introuvable.</div>'));
             });
 
-            // Retour à la liste des voitures
+            // Retour liste voitures
             $(document).on("click", ".back-to-list", function (e) {
                 e.preventDefault();
                 loadModule(currentModule);
             });
 
-            // Gestion des garages (Client B uniquement)
-            // Ouverture de la fiche détail au clic sur un garage
+            // Vue détail garage (Client B)
             $(document).on("click", ".garage-link", function (e) {
                 e.preventDefault();
                 const gid = $(this).data("id");
                 if (client !== "clientb") {
-                    $(".dynamic-div").html('<p>Module Garages réservé au Client B.</p>');
+                    $(".dynamic-div").html('<div class="alert alert-warning">Module Garages réservé au Client B.</div>');
                     return;
                 }
                 $.get(`customs/${client}/modules/garages/edit.php`, { id: gid }, function (html) {
                     $(".dynamic-div").html(html);
-                }).fail(()=> $(".dynamic-div").html("<p>Garage introuvable.</p>"));
+                }).fail(()=> $(".dynamic-div").html('<div class="alert alert-danger">Garage introuvable.</div>'));
             });
 
-            // Retour à la liste des garages
+            // Retour liste garages
             $(document).on("click", ".back-to-garages", function (e) {
                 e.preventDefault();
                 loadModule("garages");
@@ -97,23 +100,31 @@ if (isset($_GET['setClient'])) {
         });
     </script>
 </head>
-<body>
-    <h1>Auto e-auto</h1>
-    <nav>
-        <!-- Lien de sélection du client -->
-        <a href="?setClient=clienta"> Client A </a>
-        <a href="?setClient=clientb"> Client B </a>
-        <a href="?setClient=clientc"> Client C </a>
-    </nav>
-    <p> Client actif : <strong><?= htmlspecialchars($clientId) ?></strong></p>
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="mb-4">Auto e-auto</h1>
 
-    <p>
-        Modules :
-        <a href="#" class="switch-module" data-module="cars">Voitures</a> |
-        <a href="#" class="switch-module" data-module="garages">Garages (B)</a>
-    </p>
+        <!-- Sélecteur de client -->
+        <nav class="mb-3">
+            <div class="btn-group" role="group">
+                <a href="?setClient=clienta" class="btn btn-outline-primary">Client A</a>
+                <a href="?setClient=clientb" class="btn btn-outline-primary">Client B</a>
+                <a href="?setClient=clientc" class="btn btn-outline-primary">Client C</a>
+            </div>
+        </nav>
 
-    <!-- Contenu chargé dynamiquement (liste/détail voitures ou garages) -->
-    <div class="dynamic-div"></div>
+        <p>
+            Client actif : <strong class="text-primary"><?= htmlspecialchars($clientId) ?></strong>
+        </p>
+
+        <!-- Navigation modules -->
+        <div class="mb-3">
+            <a href="#" class="switch-module btn btn-secondary btn-sm" data-module="cars">Voitures</a>
+            <a href="#" class="switch-module btn btn-secondary btn-sm" data-module="garages">Garages (B)</a>
+        </div>
+
+        <!-- Contenu dynamique -->
+        <div class="dynamic-div card shadow-sm p-3 bg-white rounded"></div>
+    </div>
 </body>
 </html>
