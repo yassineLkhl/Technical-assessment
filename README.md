@@ -1,4 +1,4 @@
-# Technical-assessment for HRTech
+# Technical-assessment for Tool4staffing
 
 ### Note sur les commits
 Le projet a été développé d’une traite (environ 3h) puis pushé en une fois.  
