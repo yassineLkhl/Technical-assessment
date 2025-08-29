@@ -121,9 +121,9 @@
     },
     {
       "id": 13,
-      "modelName": "Oldtimer",
+      "modelName": "Williams",
       "year": 126230400, 
-      "brand": "Vintage",
+      "brand": "Clio",
       "power": 90,
       "customer": "clienta",
       "garageId": 1,
@@ -131,7 +131,7 @@
     },
     {
       "id": 14,
-      "modelName": "FreshCar",
+      "modelName": "FreshNew",
       "year": 1704067200,
       "brand": "Future",
       "power": 150,
